@@ -19,6 +19,13 @@ This project builds the complete infrastructure to answer those questions — **
 
 ---
 
+## 📊 Dashboard Preview
+
+![Executive Dashboard](executive.png)
+![Business Dashboard](business.png)
+
+---
+
 ## Architecture
 
 ```
