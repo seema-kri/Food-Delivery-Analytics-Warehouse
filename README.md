@@ -1,33 +1,46 @@
-# OrderIQ — Food Delivery Analytics Platform
+# 🍔 OrderIQ — Food Delivery Analytics Platform
 
 > End-to-end data engineering pipeline built on **Microsoft Fabric** · **197,430 simulated orders** · Star schema data warehouse · 10 analytical SQL modules · Interactive Power BI dashboard
 
+[![Microsoft Fabric](https://img.shields.io/badge/Microsoft%20Fabric-0078D4?style=flat&logo=microsoft&logoColor=white)](https://learn.microsoft.com/en-us/fabric/)
+[![Power BI](https://img.shields.io/badge/Power%20BI-F2C811?style=flat&logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
+[![T-SQL](https://img.shields.io/badge/T--SQL-CC2927?style=flat&logo=microsoftsqlserver&logoColor=white)](https://learn.microsoft.com/en-us/sql/t-sql/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+
 ---
 
-## Why This Project Exists
+## 📋 Table of Contents
 
-Food delivery platforms generate enormous volumes of operational data every day — but raw transactional logs don't answer the questions that actually drive business decisions:
+- [Problem Statement](#-problem-statement)
+- [Architecture](#-architecture)
+- [Data Model](#-data-model--star-schema)
+- [SQL Analytics](#-sql-analytics--10-business-questions)
+- [Dashboard Preview](#-dashboard-preview)
+- [Key Findings](#-key-findings)
+- [Project Structure](#-project-structure)
+- [Tech Stack](#-tech-stack)
+- [How to Run](#-how-to-run)
+- [Limitations & Next Steps](#-limitations--next-steps)
+- [Author](#-author)
+
+---
+
+## ❓ Problem Statement
+
+Food delivery platforms generate massive operational data daily — but raw transactional logs don't answer the questions that drive business decisions:
 
 - Which states and cities generate disproportionate revenue?
 - Do premium orders (₹500+) correlate with higher customer satisfaction?
 - Where is restaurant supply failing to meet demand?
 - What does month-over-month revenue trend reveal about seasonality?
 
-This project builds the complete infrastructure to answer those questions — **raw data ingestion → SQL transformation → star schema modeling → Power BI dashboard** — using Microsoft Fabric as the unified analytics platform.
+**Goal:** Build complete infrastructure to answer these — raw data ingestion → SQL transformation → star schema modeling → Power BI dashboard — using Microsoft Fabric as unified analytics platform.
 
-> **Data Note:** All data in this project is synthetically generated to simulate realistic food delivery operations. It reflects plausible business patterns — order volumes, price distributions, geographic spread, rating behavior — while containing no real customer or business information. This approach is standard practice for portfolio projects where production data access is restricted.
-
----
-
-## 📊 Dashboard Preview
-
-
-![Executive Dashboard](executive.png)
-![Business Dashboard](business.png)
+> **Data Note:** All data is synthetically generated to simulate realistic food delivery operations. Reflects plausible business patterns — order volumes, price distributions, geographic spread, rating behavior — with no real customer or business information.
 
 ---
 
-## Architecture
+## 🏗 Architecture
 
 ```
 Raw CSVs
@@ -57,14 +70,14 @@ Power BI Report               ← interactive dashboards for stakeholders
 
 ---
 
-## Data Model — Star Schema
+## 🗂 Data Model — Star Schema
 
 ```
      dim_date              dim_location
    ┌──────────┐           ┌──────────────┐
    │ date_id  │           │ location_id  │
-   │ order_date│           │ city         │
-   │ order_date│           │ state        │
+   │order_date│           │ city         │
+   │order_date│           │ state        │
    │  _new    │           │ location     │
    └────┬─────┘           └──────┬───────┘
         │  1                     │  1
@@ -88,17 +101,25 @@ Power BI Report               ← interactive dashboards for stakeholders
    └──────────┘                    └──────────────┘
 ```
 
-**Data quality fix applied:** Source `order_date` field used European format (DD-MM-YYYY). Added `order_date_new` column via `TRY_CONVERT(date, order_date, 5)` and validated for NULLs before downstream use — a common real-world ingestion issue.
+**Data quality fix applied:** Source `order_date` field used European format (DD-MM-YYYY). Added `order_date_new` column via `TRY_CONVERT(date, order_date, 5)` and validated for NULLs before downstream use.
 
 ---
 
-## SQL Analytics — 10 Business Questions
+## 📊 Dashboard Preview
 
-Every query was written around a decision a business stakeholder would actually need to make — not just to demonstrate SQL syntax.
+| Executive Dashboard | Business Dashboard |
+|---|---|
+| ![Executive Dashboard](excecutive.png) | ![Business Dashboard](business.png) |
+
+---
+
+## 🔍 SQL Analytics — 10 Business Questions
+
+Every query answers a real stakeholder decision — not just SQL syntax demonstration.
 
 ### Revenue & Geography
 
-**State-level revenue ranking**
+**1. State-level revenue ranking**
 ```sql
 SELECT dl.state,
        COUNT(fo.order_id)                                  AS total_orders,
@@ -111,107 +132,67 @@ JOIN swiggy_project.dim_location dl ON fo.location_id = dl.location_id
 GROUP BY dl.state
 ORDER BY total_revenue DESC
 ```
-*Business decision:* Where to concentrate marketing spend and restaurant acquisition.
+*Decision:* Where to concentrate marketing spend and restaurant acquisition.
 
-**City-level breakdown (Top 15)**
-Cross-dimension analysis at state + city granularity with `RANK()` window function — identifies cities driving outsized value within each state.
+**2. City-level breakdown (Top 15)** — Cross-dimension analysis at state + city granularity with `RANK()` window function.
 
-**Restaurant density vs. demand**
-Computes `revenue_per_restaurant` and `orders_per_restaurant` per state — surfaces states where demand outpaces supply (expansion opportunity) vs. oversaturated markets.
-
----
+**3. Restaurant density vs. demand** — Computes `revenue_per_restaurant` and `orders_per_restaurant` per state; surfaces expansion opportunities vs. oversaturated markets.
 
 ### Customer & Order Behavior
 
-**Order value segmentation**
+**4. Order value segmentation**
 ```sql
 SELECT CASE
          WHEN price < 200               THEN 'Budget (<₹200)'
          WHEN price BETWEEN 200 AND 500 THEN 'Mid (₹200-500)'
          WHEN price > 500               THEN 'Premium (>₹500)'
-       END                                                          AS order_segment,
-       COUNT(order_id)                                              AS total_orders,
+       END                                                              AS order_segment,
+       COUNT(order_id)                                                  AS total_orders,
        ROUND(COUNT(order_id) * 100.0 / SUM(COUNT(order_id)) OVER(), 1) AS order_share_pct,
        ROUND(SUM(price)      * 100.0 / SUM(SUM(price))      OVER(), 1) AS revenue_share_pct
 FROM swiggy_project.fact_orders
 WHERE price BETWEEN 10 AND 3000
 GROUP BY CASE ... END
 ```
-*Business decision:* Are budget orders subsidized by premium revenue? Should pricing strategy shift?
+*Decision:* Are budget orders subsidized by premium revenue? Should pricing strategy shift?
 
-**Price vs. rating correlation**
-4-tier price segmentation (Budget / Mid / Premium / Luxury) with avg rating, avg review count, and % orders that received a review per tier. Tests whether spend correlates with satisfaction — a key assumption in premium product strategy.
+**5. Price vs. rating correlation** — 4-tier segmentation with avg rating, review count, and % orders reviewed per tier.
 
-**Rating distribution**
-Frequency analysis of all rating values with percentage of total. Detects rating clustering, scale compression, or submission bias.
-
----
+**6. Rating distribution** — Frequency analysis detecting clustering, scale compression, or submission bias.
 
 ### Growth & Trends
 
-**Month-over-month revenue growth**
+**7. Month-over-month revenue growth**
 ```sql
 ROUND(
   (SUM(fo.price) - LAG(SUM(fo.price)) OVER (ORDER BY MONTH(dd.order_date_new)))
   / LAG(SUM(fo.price)) OVER (ORDER BY MONTH(dd.order_date_new)) * 100, 1
 ) AS mom_growth_pct
 ```
-*Business decision:* Which months show negative growth? Is it seasonal or structural?
+*Decision:* Which months show negative growth? Seasonal or structural?
 
-**Top restaurants by revenue share**
-Uses `SUM(...) OVER ()` to compute each restaurant's % contribution to total platform revenue — not just raw revenue, which is inflated by high-volume, low-AOV restaurants.
+**8. Top restaurants by revenue share** — Uses `SUM(...) OVER ()` to compute each restaurant's % contribution to total platform revenue.
 
-**Average order value by food category**
-Filtered to categories with ≥100 orders (statistical significance floor), then ranked by AOV. Identifies which food categories drive value vs. volume.
+**9. Average order value by food category** — Filtered to categories ≥100 orders (statistical significance), ranked by AOV.
 
----
-
-## Data Pipeline — Fabric Orchestration
-
-Pipeline: `Pipeline_lakehouse_to_dw`
-Design: 5 **parallel** Copy Data activities (not sequential — total runtime ≈ slowest single activity)
-
-| Activity | Runtime | Result |
-|---|---|---|
-| Copy data dim_date | 41s | Succeeded |
-| Copy data dim_location | 40s | Succeeded |
-| Copy data dim_dish | 41s | Succeeded |
-| Copy data dim_restaurant | 40s | Succeeded |
-| Copy data fact_orders | 43s | Succeeded |
-
-**Total pipeline runtime: ~43s** — bounded by slowest activity, not sum of all five.
+**10. [Additional query]** — See `SQL_Query.sql` for full set.
 
 ---
 
-## Analytical Findings (Simulated Data)
+## 📈 Key Findings
 
-These patterns emerged from the synthetic dataset and are consistent with what real food delivery data typically shows:
-
-- **197,430 orders** across all states — sufficient volume for statistically stable segment analysis
-- Revenue follows a **power-law distribution** across states — top states generate the majority of platform revenue
-- **High-value orders (>₹500)** are a minority of order count but contribute disproportionately to revenue — classic 80/20 dynamic
-- **Rating distribution is left-skewed** — clustering at 4.0–4.5 suggests either genuine quality or selection bias (dissatisfied users may not submit ratings)
-- **Restaurant density analysis** reveals asymmetry — some states show high revenue-per-restaurant (demand exceeds supply) while others show saturation
-- **MoM trend** shows identifiable seasonality — consistent with known food delivery patterns (post-festival slowdowns, regional summer dips)
-
----
-
-## Limitations & What I'd Do With Real Data
-
-| Limitation (Simulated) | Approach With Real Data |
+| Finding | Insight |
 |---|---|
-| No customer IDs → no cohort analysis | Add dim_customer, build RFM (Recency/Frequency/Monetary) segments |
-| No delivery time data → no speed-satisfaction analysis | Join delivery partner logs, correlate ETA variance with ratings |
-| Full reload pipeline → not production-ready | Implement watermark-based incremental loads on fact_orders |
-| No access governance | Add Power BI row-level security scoped by state/region |
-| No forecasting layer | Feed MoM trend into Prophet or statsmodels for demand forecasting |
-| No data quality monitoring | Add NULL checks, referential integrity tests, freshness assertions as pipeline steps |
-
-This section matters because it demonstrates the gap between a portfolio project and a production system — and shows I understand exactly how to close it.
+| 197,430 orders across all states | Sufficient volume for statistically stable segment analysis |
+| Revenue follows power-law distribution | Top states generate majority of platform revenue |
+| High-value orders (>₹500) = minority of volume | Contribute disproportionately to revenue — classic 80/20 |
+| Rating distribution left-skewed | Clustering at 4.0–4.5: genuine quality or selection bias |
+| Restaurant density asymmetry | Some states show high revenue-per-restaurant (demand > supply) |
+| MoM trend shows seasonality | Post-festival slowdowns, regional summer dips |
 
 ---
 
-## Repository Structure
+## 🗃 Project Structure
 
 ```
 OrderIQ-Food-Delivery-Analytics/
@@ -222,40 +203,74 @@ OrderIQ-Food-Delivery-Analytics/
 ├── EDA.ipynb                   # Exploratory data analysis (Python)
 ├── SQL_Query.sql               # All 10 analytical queries
 ├── Dashboard.pbit              # Power BI template (connect your own DW)
+├── business.png                # Business dashboard screenshot
+├── excecutive.png              # Executive dashboard screenshot
+├── pdf.pdf                     # Project report
 └── README.md
 ```
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
 | Tool | Usage |
 |---|---|
-| Microsoft Fabric (Lakehouse + DW + Pipelines + Semantic Model) | Unified analytics platform |
-| T-SQL | Data cleaning, star schema modeling, window function analytics |
-| Power BI | Semantic model + interactive report |
-| Python / Jupyter | EDA, data simulation, statistical profiling |
-| Git / GitHub | Version control, documentation |
+| **Microsoft Fabric** (Lakehouse + DW + Pipelines + Semantic Model) | Unified analytics platform |
+| **T-SQL** | Data cleaning, star schema modeling, window function analytics |
+| **Power BI** | Semantic model + interactive report |
+| **Python / Jupyter** | EDA, data simulation, statistical profiling |
+| **Git / GitHub** | Version control, documentation |
 
 ---
 
-## Why Microsoft Fabric
+## ▶ How to Run
 
-Traditional analytics stacks require stitching together: object storage + ETL tool + data warehouse + BI layer + orchestrator — each with its own auth, monitoring, and billing.
+```bash
+# Clone the repository
+git clone https://github.com/seema-kri/OrderIQ-Food-Delivery-Analytics.git
+cd OrderIQ-Food-Delivery-Analytics
+```
 
-Fabric consolidates all five into one governed workspace sharing a single **OneLake** storage layer. No data copies between layers. No connector maintenance. This project demonstrates a complete production-grade analytics pipeline running entirely within Fabric — raw ingestion to published report — which reflects how modern analytics teams are actually building today.
+**Step 1 — Fabric Setup**
+1. Create a Microsoft Fabric workspace
+2. Create a Lakehouse named `swiggylw`
+3. Upload CSVs from `data/raw/` to the Lakehouse Files section
+
+**Step 2 — Run Pipeline**
+1. Create a Data Pipeline in Fabric
+2. Add 5 parallel Copy Data activities (Lakehouse → Data Warehouse)
+3. Run pipeline (~43s total)
+
+**Step 3 — SQL Analytics**
+1. Open the Data Warehouse query editor
+2. Run queries from `SQL_Query.sql`
+
+**Step 4 — Power BI**
+1. Open `Dashboard.pbit` in Power BI Desktop
+2. Connect to your Fabric Data Warehouse
+3. Refresh to load data
 
 ---
 
-## If I Were to Scale This
+## ⚠ Limitations & Next Steps
 
-1. **Incremental loads** — replace full Copy activities with watermark-based incremental ingestion
-2. **Customer dimension** — add RFM cohort analysis for retention and churn modeling
-3. **Delivery performance layer** — correlate delivery speed with ratings to identify operational improvement areas
-4. **Forecasting** — feed MoM trend into Prophet or statsmodels for demand forecasting by region
-5. **Row-level security** — scope Power BI access by geography for regional stakeholder self-service
-6. **Data quality framework** — automated NULL checks, referential integrity tests, freshness monitoring as pipeline steps
+| Current Limitation | Production Approach |
+|---|---|
+| No customer IDs → no cohort analysis | Add `dim_customer`, build RFM segments |
+| No delivery time data | Join delivery partner logs, correlate ETA variance with ratings |
+| Full reload pipeline | Implement watermark-based incremental loads on `fact_orders` |
+| No access governance | Add Power BI row-level security scoped by state/region |
+| No forecasting layer | Feed MoM trend into Prophet for demand forecasting |
+| No data quality monitoring | Add NULL checks, referential integrity tests, freshness assertions |
 
 ---
 
-*Built by **Seema** · [github.com/seema-kri/OrderIQ-Food-Delivery-Analytics](https://github.com/seema-kri/OrderIQ-Food-Delivery-Analytics)*
+## 👩‍💻 Author
+
+**Seema** · Data Analyst
+
+[![GitHub](https://img.shields.io/badge/GitHub-seema--kri-181717?style=flat&logo=github)](https://github.com/seema-kri)
+
+---
+
+*⭐ Star this repo if you found it useful!*
