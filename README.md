@@ -106,16 +106,19 @@ Ratings cluster around 4.0–4.5
 
 ---
 
-## 🗃 Project Structure
+## Project Structure
+
+```
 OrderIQ-Food-Delivery-Analytics/
-├── data/ # Raw datasets
-├── notebooks/ # EDA & analysis
-├── sql/ # Business queries
-├── images/ # Dashboard previews
-├── Dashboard.pbit # Power BI template
-├── SQL_Query.sql # Full SQL analysis
-├── pdf.pdf # Project report
+├── data/                # Raw datasets
+├── notebooks/           # EDA & analysis
+├── sql/                 # Business queries
+├── images/              # Dashboard previews
+├── Dashboard.pbit       # Power BI template
+├── SQL_Query.sql        # Full SQL analysis
+├── pdf.pdf              # Project report
 └── README.md
+```
 
 ---
 
