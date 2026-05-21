@@ -52,7 +52,7 @@ Business queries built using CTEs, window functions, ranking, and time-series an
 
 | Executive view | Business view |
 |---|---|
-| ![Executive](./images/executive.png) | ![Business](./images/business.png) |
+| ![Executive](./excective.png) | ![Business](./business.png) |
 
 Power BI template: [`Dashboard.pbit`](./Dashboard.pbit)
 
@@ -73,12 +73,12 @@ Power BI template: [`Dashboard.pbit`](./Dashboard.pbit)
 
 ```
 OrderIQ-Food-Delivery-Analytics/
-├── data/              # Raw datasets (synthetic, real-world patterns)
-├── notebooks/         # EDA & analysis
-├── sql/               # Business queries
-├── images/            # Dashboard previews
+├── charts/            # Chart exports
+├── data/raw/          # Raw datasets (synthetic, real-world patterns)
+├── warehouse/         # Data warehouse models
+├── EDA.ipynb          # Exploratory data analysis
 ├── Dashboard.pbit     # Power BI template
-├── SQL_Query.sql      # Full SQL analysis
+├── SQL Query.sql      # Full SQL analysis
 ├── pdf.pdf            # Project report
 └── README.md
 ```
