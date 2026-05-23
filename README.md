@@ -50,27 +50,16 @@ Business queries built using CTEs, window functions, ranking, and time-series an
 
 ## Dashboard
 
-<table>
-<tr>
-<td align="center" width="50%">
+<p align="center">
+  <img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/excecutive.png" width="45%" />
+  <img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/business.png" width="45%" />
+</p>
 
-### Executive View
-
-<img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/executive.png" width="100%"/>
-
-</td>
-
-<td align="center" width="50%">
-
-### Business View
-
-<img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/business.png" width="100%"/>
-
-</td>
-</tr>
-</table>
-
-<br>
+<p align="center">
+  <b>Executive View</b>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <b>Business View</b>
+</p>
 
 Power BI template: [Dashboard.pbit](./Dashboard.pbit)
 
