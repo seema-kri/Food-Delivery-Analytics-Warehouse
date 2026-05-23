@@ -50,12 +50,19 @@ Business queries built using CTEs, window functions, ranking, and time-series an
 
 ## Dashboard
 
-| Executive view | Business view |
-|---|---|
-| ![Executive](./excective.png) | ![Business](./business.png) |
+<table>
+<tr>
+<td align="center"><b>Executive View</b></td>
+<td align="center"><b>Business View</b></td>
+</tr>
 
-Power BI template: [`Dashboard.pbit`](./Dashboard.pbit)
+<tr>
+<td><img src="./executive.png" width="450"/></td>
+<td><img src="./business.png" width="450"/></td>
+</tr>
+</table>
 
+Power BI template: <a href="./Dashboard.pbit">Dashboard.pbit</a>
 ---
 
 ## Stack
