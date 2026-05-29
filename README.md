@@ -1,107 +1,91 @@
-# OrderIQ — Food Delivery Analytics Platform
+# Food Delivery Analytics Warehouse
 
-> End-to-end analytics system built on Microsoft Fabric: raw CSV → Lakehouse → Data Warehouse → Power BI.  
-> Analyzed 197K+ orders to surface revenue concentration, demand-supply gaps, and growth opportunities.
-
----
-
-## Business impact
-
-| Finding | Insight | Action |
-|---|---|---|
-| Revenue concentration | Top states drive majority of revenue (Pareto effect) | Focus marketing + expansion in high-performing regions |
-| Premium order value | Orders >₹500 contribute ~40–50% of total revenue | Promote premium combos + upselling to lift revenue without volume increase |
-| Demand-supply gap | High-revenue regions show low restaurant density | Onboard restaurants in underserved high-demand areas |
-| Seasonal trends | MoM fluctuations in order volume | Run targeted campaigns in low-demand months to stabilize revenue |
-| Rating bias | Ratings cluster 4.0–4.5 with low variance | Improve feedback granularity for actionable quality signals |
-
-Pipeline reduced manual analysis effort by ~70%.
+End-to-end food delivery analytics built on Microsoft Fabric. Covers the full stack — raw data ingestion, warehouse modelling, SQL analysis, and business dashboards — on 197,430 real-pattern orders worth ₹53M across 10 Indian cities.
 
 ---
 
-## Architecture
+## The problem
 
-```
-Raw CSV → Lakehouse (Bronze) → Data Pipeline → Data Warehouse (Silver/Gold) → Power BI
-```
-
-Star schema data model:
-- `fact_orders` — core transactional data
-- `dim_date` · `dim_location` · `dim_restaurant` · `dim_dish`
-
-Enables efficient joins, scalable analytics, and real-world BI use cases.
+Food delivery platforms collect millions of order records and do nothing with them. Analysts get handed flat CSVs and asked why revenue dipped in June. This project builds the infrastructure to actually answer that — a proper warehouse, a clean data model, and SQL that thinks in business terms.
 
 ---
 
-## SQL analytics
+## What I built
 
-Business queries built using CTEs, window functions, ranking, and time-series analysis:
+**Data pipeline** — 5 parallel Copy Data activities in Microsoft Fabric moving raw CSVs into a Lakehouse, then into a structured Data Warehouse. No manual steps.
 
-- Revenue ranking by state and city
-- Demand vs supply (revenue per restaurant)
-- Order value segmentation — budget / mid / premium
-- Price vs rating correlation
-- Month-over-month growth trends
-- Top restaurant revenue contribution
+**Star schema** — `fact_orders` at the centre, joined to `dim_date`, `dim_location`, `dim_restaurant`, and `dim_dish`. Designed for query performance and BI compatibility.
 
-→ [`SQL_Query.sql`](./SQL_Query.sql)
+**SQL analytics layer** — 10+ queries using window functions, CTEs, and segmentation logic to answer specific business questions. Not SELECT *, actual analysis.
+
+**Two Power BI dashboards** — Executive Summary for leadership, Business Operations for the ops team. Both filterable by month, city, food type, and rating.
 
 ---
 
-## Dashboard
+## What the data says
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/excecutive.png" width="45%" />
-  <img src="https://raw.githubusercontent.com/seema-kri/OrderIQ-Food-Delivery-Analytics/main/business.png" width="45%" />
-</p>
+**Bengaluru is a single point of failure.** 20,100 orders — nearly double every other city. Saturday peaks hit 29K. One bad weekend in Karnataka wipes 10% of monthly revenue.
 
-<p align="center">
-  <b>Executive View</b>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <b>Business View</b>
-</p>
+**Revenue looks healthy. Concentration doesn't.** ₹53M total, but top 5 states drive 45% of it. Karnataka alone contributes ₹5.5M. The platform isn't diversified — it's dependent.
 
-Power BI template: [Dashboard.pbit](./Dashboard.pbit)
+**Non-veg is the business.** 63.7% of revenue comes from non-veg orders. In a country with 300M+ vegetarians, that's a product gap, not just a preference signal.
+
+**Premium orders are underserved.** Orders above ₹500 punch above their weight in revenue contribution. No loyalty mechanics, no retention strategy, no upsell path. Money left on the table.
+
+**Ratings are useless.** 4.0 to 4.5, clustered, low variance. The feedback system is broken — can't tell a good restaurant from a bad one. Every insight built on ratings is noise.
+
+---
+
+## SQL highlights
+
+All queries in [`sql/SQL_Query.sql`](./sql/SQL_Query.sql)
+
+- Month-over-month revenue growth using `LAG()`
+- Order value segmentation — budget / mid / premium with revenue share per tier
+- Restaurant density vs revenue by state — finding supply gaps
+- Price vs rating correlation using CTEs
+- City-level revenue ranking with `RANK() OVER`
+- Top restaurant contribution as % of total using `SUM() OVER()`
+
+---
+
+## Dashboards
+
+![Executive Summary](./dashboard/excecutive.png)
+![Business Operations](./dashboard/business.png)
+
+Power BI template: [dashboard/Dashboard.pbit](./dashboard/Dashboard.pbit)
 
 ---
 
 ## Stack
 
-| Layer | Tools |
-|---|---|
-| Data platform | Microsoft Fabric — Lakehouse, Data Warehouse, Pipelines |
-| Query layer | T-SQL — CTEs, window functions, aggregations |
-| Visualization | Power BI — KPIs, slicers, drill-through |
-| Exploration | Python — EDA and data simulation |
+- **Microsoft Fabric** — Lakehouse, Data Warehouse, Data Pipelines
+- **T-SQL** — window functions, CTEs, aggregations
+- **Power BI** — KPI cards, slicers, trend charts
+- **Python** — EDA, data profiling, synthetic data simulation
 
 ---
 
-## Project structure
+## Repo structure
 
 ```
-OrderIQ-Food-Delivery-Analytics/
-├── charts/            # Chart exports
-├── data/raw/          # Raw datasets (synthetic, real-world patterns)
-├── warehouse/         # Data warehouse models
-├── EDA.ipynb          # Exploratory data analysis
-├── Dashboard.pbit     # Power BI template
-├── SQL Query.sql      # Full SQL analysis
-├── pdf.pdf            # Project report
-└── README.md
+├── charts/              chart exports
+├── dashboard/           Power BI template, PDF, screenshots
+├── data/raw/            source datasets
+├── notebooks/           EDA.ipynb
+├── sql/                 SQL_Query.sql
+└── warehouse/           data model screenshots
 ```
 
 ---
 
-## Roadmap
+## What's next
 
-- [ ] Demand forecasting (Prophet / ML)
-- [ ] Customer segmentation (RFM / clustering)
-- [ ] Real-time streaming pipeline
-- [ ] Power BI Service deployment
+- Demand forecasting on daily order volume
+- Customer RFM segmentation to find high-LTV cohorts
+- Real-time pipeline for live operational monitoring
 
 ---
 
-## About
-
-[Seema Kumari](https://github.com/seema-kri) — Data Analyst building systems that drive decisions, not just dashboards.  
-[LinkedIn](https://www.linkedin.com/in/seema-kumari-375763308/) · [HackerRank](https://www.hackerrank.com/profile/seemakri136) · [LeetCode](https://leetcode.com/u/seemakri136/)
+Seema Kumari — [LinkedIn](https://www.linkedin.com/in/seema-kumari-375763308/) · [GitHub](https://github.com/seema-kri)
